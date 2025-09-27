@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>神秘寻宝冒险</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        treasure: {
+                            gold: '#D4AF37',
+                            brown: '#8B4513',
+                            sand: '#F4A460',
+                            stone: '#A9A9A9'
+                        }
+                    },
+                    fontFamily: {
+                        adventure: ['"MedievalSharp"', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            }
+            .animate-float {
+                animation: float 3s ease-in-out infinite;
+            }
+            .animate-pulse-slow {
+                animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            .animate-fade-in {
+                animation: fadeIn 1s ease-in forwards;
+            }
+            .animate-slide-up {
+                animation: slideUp 0.8s ease-out forwards;
+            }
+            .backdrop-blur {
+                backdrop-filter: blur(8px);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-slate-800 min-h-screen text-white font-adventure overflow-x-hidden">
+    <!-- 顶部标题 -->
+    <header class="py-6 px-4 text-center">
+        <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-treasure-gold text-shadow animate-pulse-slow">
+            <i class="fa fa-map-signs mr-3"></i>神秘寻宝冒险
+        </h1>
+        <p class="mt-2 text-slate-300 text-lg">跟随线索，开启你的寻宝之旅...</p>
+    </header>
+
+    <!-- 主游戏区域 -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <!-- 游戏状态显示 -->
+        <div class="bg-slate-800/70 backdrop-blur rounded-xl p-6 mb-8 border border-slate-700 shadow-xl">
+            <div id="status" class="text-center text-xl h-12 flex items-center justify-center">
+                准备开始冒险...
+            </div>
+            <div class="w-full bg-slate-700 rounded-full h-2.5 mt-4 overflow-hidden">
+                <div id="progress-bar" class="bg-treasure-gold h-2.5 rounded-full w-0 transition-all duration-500"></div>
+            </div>
+        </div>
+
+        <!-- 游戏场景展示 -->
+        <div id="scene-container" class="relative rounded-xl overflow-hidden h-[400px] md:h-[500px] mb-8 shadow-2xl">
+            <div id="scene" class="w-full h-full bg-cover bg-center transition-all duration-1000" style="background-image: url('https://picsum.photos/id/1036/1200/800');"></div>
+            <div id="overlay" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-500">
+                <div id="message" class="text-center p-6 max-w-lg bg-black/60 backdrop-blur rounded-lg border border-treasure-gold/30 transform translate-y-8 opacity-0 transition-all duration-500">
+                    <p class="text-xl md:text-2xl mb-4"></p>
+                    <button id="continue-btn" class="bg-treasure-gold text-slate-900 px-6 py-2 rounded-full font-bold hover:bg-treasure-gold/80 transition-all transform hover:scale-105">
+                        继续冒险 <i class="fa fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="text-center">
+            <button id="start-btn" class="bg-treasure-gold text-slate-900 px-8 py-3 rounded-full text-lg font-bold hover:bg-treasure-gold/80 transition-all transform hover:scale-105 shadow-lg">
+                <i class="fa fa-compass mr-2"></i>开始寻宝
+            </button>
+            <button id="reset-btn" class="hidden bg-slate-600 text-white px-6 py-2 rounded-full ml-4 hover:bg-slate-500 transition-all">
+                <i class="fa fa-refresh mr-1"></i>重新开始
+            </button>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="mt-auto py-4 text-center text-slate-400 text-sm">
+        <p>神秘寻宝冒险 &copy; 2023</p>
+    </footer>
+
+    <script>
+        // 扩展后的宝藏地图API
+        class TreasureMap {
+            static getInitialClue() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve({
+                            message: "在古老的图书馆里找到了第一个线索...一张泛黄的羊皮纸",
+                            image: "https://picsum.photos/id/24/1200/800",
+                            progress: 10
+                        });
+                    }, 1500);
+                });
+            }
+          
+            static decodeAncientScript(clue) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        if (!clue) {
+                            reject({
+                                message: "没有线索可以解码!",
+                                image: "https://picsum.photos/id/1056/1200/800"
+                            });
+                        }
+                        resolve({
+                            message: "解码成功!古老文字指向了一座被遗忘的神庙",
+                            image: "https://picsum.photos/id/29/1200/800",
+                            progress: 25
+                        });
+                    }, 2000);
+                });
+            }
+          
+            static searchTemple(location) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.3) {
+                            reject({
+                                message: "糟糕!遇到了神庙守卫!他们发现了你并把你赶了出去",
+                                image: "https://picsum.photos/id/1074/1200/800"
+                            });
+                        }
+                        resolve({
+                            message: "成功避开守卫，在神庙深处发现了一个神秘的房间",
+                            image: "https://picsum.photos/id/1048/1200/800",
+                            progress: 40
+                        });
+                    }, 2500);
+                });
+            }
+
+            static solveRiddle() {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.25) {
+                            reject({
+                                message: "谜语太难了，你没能解开，宝藏房间的门关闭了",
+                                image: "https://picsum.photos/id/1061/1200/800"
+                            });
+                        }
+                        resolve({
+                            message: "你成功解开了古老的谜语，墙壁缓缓移开，露出了宝箱",
+                            image: "https://picsum.photos/id/133/1200/800",
+                            progress: 60
+                        });
+                    }, 2000);
+                });
+            }
+
+            static bypassTraps() {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.3) {
+                            reject({
+                                message: "小心!你触发了陷阱，被迫逃离了神庙",
+                                image: "https://picsum.photos/id/1059/1200/800"
+                            });
+                        }
+                        resolve({
+                            message: "你巧妙地避开了所有陷阱，安全到达宝箱前",
+                            image: "https://picsum.photos/id/1063/1200/800",
+                            progress: 80
+                        });
+                    }, 2500);
+                });
+            }
+          
+            static openTreasureBox() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve({
+                            message: "恭喜!你找到了传说中的宝藏!里面装满了黄金和宝石!",
+                            image: "https://picsum.photos/id/175/1200/800",
+                            progress: 100
+                        });
+                    }, 2000);
+                });
+            }
+        }
+
+        // DOM元素
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const statusEl = document.getElementById('status');
+        const progressBar = document.getElementById('progress-bar');
+        const sceneEl = document.getElementById('scene');
+        const overlayEl = document.getElementById('overlay');
+        const messageEl = document.getElementById('message').querySelector('p');
+        const continueBtn = document.getElementById('continue-btn');
+        const messageContainer = document.getElementById('message');
+
+        // 用async/await重写寻宝过程
+        async function findTreasureWithAsyncAwait() {
+            try {
+                // 禁用开始按钮
+                startBtn.disabled = true;
+                startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                // 第一步：获取初始线索
+                statusEl.textContent = "正在寻找初始线索...";
+                const initialClue = await TreasureMap.getInitialClue();
+                await showMessage(initialClue.message, initialClue.image, initialClue.progress);
+                
+                // 第二步：解码古老文字
+                statusEl.textContent = "正在解码古老文字...";
+                const decoded = await TreasureMap.decodeAncientScript(initialClue);
+                await showMessage(decoded.message, decoded.image, decoded.progress);
+                
+                // 第三步：搜索神庙
+                statusEl.textContent = "正在探索神庙...";
+                const templeFind = await TreasureMap.searchTemple(decoded);
+                await showMessage(templeFind.message, templeFind.image, templeFind.progress);
+                
+                // 第四步：解开谜语（新增情节）
+                statusEl.textContent = "正在解开古老谜语...";
+                const riddleSolved = await TreasureMap.solveRiddle();
+                await showMessage(riddleSolved.message, riddleSolved.image, riddleSolved.progress);
+                
+                // 第五步：避开陷阱（新增情节）
+                statusEl.textContent = "正在小心避开陷阱...";
+                const trapsBypassed = await TreasureMap.bypassTraps();
+                await showMessage(trapsBypassed.message, trapsBypassed.image, trapsBypassed.progress);
+                
+                // 第六步：打开宝箱
+                statusEl.textContent = "正在打开宝箱...";
+                const treasure = await TreasureMap.openTreasureBox();
+                await showMessage(treasure.message, treasure.image, treasure.progress);
+                
+                // 完成寻宝
+                statusEl.textContent = "寻宝成功！";
+                startBtn.classList.add('hidden');
+                resetBtn.classList.remove('hidden');
+                
+            } catch (error) {
+                statusEl.textContent = "寻宝失败";
+                await showMessage(error.message, error.image, progressBar.style.width);
+                startBtn.classList.add('hidden');
+                resetBtn.classList.remove('hidden');
+            }
+        }
+
+        // 显示消息并等待用户继续
+        function showMessage(message, image, progress) {
+            return new Promise((resolve) => {
+                // 更新场景图片
+                sceneEl.style.backgroundImage = `url('${image}')`;
+                
+                // 更新进度条
+                progressBar.style.width = `${progress}%`;
+                
+                // 更新消息
+                messageEl.textContent = message;
+                
+                // 显示覆盖层和消息
+                overlayEl.style.opacity = "1";
+                setTimeout(() => {
+                    messageContainer.style.transform = "translateY(0)";
+                    messageContainer.style.opacity = "1";
+                }, 100);
+                
+                // 等待用户点击继续
+                const handleContinue = () => {
+                    // 隐藏消息
+                    messageContainer.style.transform = "translateY(20px)";
+                    messageContainer.style.opacity = "0";
+                    setTimeout(() => {
+                        overlayEl.style.opacity = "0";
+                        continueBtn.removeEventListener('click', handleContinue);
+                        resolve();
+                    }, 300);
+                };
+                
+                continueBtn.addEventListener('click', handleContinue);
+            });
+        }
+
+        // 事件监听
+        startBtn.addEventListener('click', findTreasureWithAsyncAwait);
+        resetBtn.addEventListener('click', () => {
+            // 重置游戏状态
+            progressBar.style.width = "0";
+            statusEl.textContent = "准备开始冒险...";
+            sceneEl.style.backgroundImage = "url('https://picsum.photos/id/1036/1200/800')";
+            resetBtn.classList.add('hidden');
+            startBtn.classList.remove('hidden');
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        });
+    </script>
+</body>
+</html>
